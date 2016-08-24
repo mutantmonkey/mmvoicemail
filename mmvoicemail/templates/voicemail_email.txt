@@ -1,4 +1,4 @@
-CallSid: {[ CallSid }}
+CallSid: {{ CallSid }}
 From: {{ From }}
 
 {{ RecordingUrl }}
