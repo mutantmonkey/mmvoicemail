@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say voice="alice">Thanks for the call. Please leave a message and we'll call you back.</Say>
-    <Record maxLength="300" action="/record/finished.xml"/>
+    <Record maxLength="120" action="/record/finished.xml"/>
 </Response>
