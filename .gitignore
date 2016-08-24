@@ -1,0 +1,7 @@
+*.*.swo
+*.*.swp
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+config.py

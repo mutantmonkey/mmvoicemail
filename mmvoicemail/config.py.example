@@ -1,0 +1,3 @@
+MAIL_TO = ['voicemail@mutantmonkey.mx']
+MAIL_FROM = ['voice-no-reply@mutantmonkey.mx']
+SMTP_SERVER = "localhost"
