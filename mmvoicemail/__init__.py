@@ -8,35 +8,40 @@ app = Flask(__name__)
 app.config.from_object(config)
 
 
-@app.route('/record/start.xml')
+@app.route('/record/start.xml', methods=['GET', 'POST'])
 def record_start():
     return send_from_directory(app.static_folder, 'record.xml')
 
 
 @app.route('/record/finished.xml', methods=['POST'])
 def record_finished():
-    to_number = request.form['To'].replace('\n', '').replace('\r', '')
-    from_number = request.form['From'].replace('\n', '').replace('\r', '')
+    params = {
+        'CallSid': request.form['CallSid'],
+        'From': request.form['From'].replace('\n', '').replace('\r', ''),
+        'FromCity': request.form.get('FromCity', ''),
+        'FromState': request.form.get('FromState', ''),
+        'FromCountry': request.form.get('FromCountry', ''),
+        'To': request.form['To'].replace('\n', '').replace('\r', ''),
+        'ToCity': request.form.get('ToCity', ''),
+        'ToState': request.form.get('ToState', ''),
+        'ToCountry': request.form.get('ToCountry', ''),
+        'RecordingUrl': request.form['RecordingUrl'],
+    }
 
-    msg = MIMEText(render_template(
-        'voicemail_email.txt',
-        CallSid=request.form['CallSid'],
-        From=from_number,
-        To=to_number,
-        RecordingUrl=request.form['RecordingUrl']))
+    msg = MIMEText(render_template('voicemail_email.txt', **params))
     msg['Date'] = email.utils.formatdate()
     msg['From'] = app.config['MAIL_FROM']
     msg['To'] = ", ".join(app.config['MAIL_TO'])
     msg['Message-Id'] = email.utils.make_msgid()
     msg['X-Mailer'] = "mmvoicemail"
-    msg['Subject'] = "Voicemail from {}".format(from_number)
+    msg['X-Originating-IP'] = '[{}]'.format(request.remote_addr)
+    msg['Subject'] = "Voicemail from {}".format(params['From'])
 
-    s = smtplib.SMTP(app.config['SMTP_SERVER'])
-    s.send_message(msg)
-    s.quit()
+    try:
+        s = smtplib.SMTP(app.config['SMTP_SERVER'])
+        s.send_message(msg)
+        s.quit()
+    except Exception as e:
+        app.logger.error(e)
 
     return send_from_directory(app.static_folder, 'goodbye.xml')
-
-
-if __name__ == '__main__':
-    app.run()

@@ -1,4 +1,14 @@
 CallSid: {{ CallSid }}
 From: {{ From }}
-
+To: {{ To }}
+{% if FromCity != "" and FromState != "" and FromCountry != "" -%}
+Caller Location: {{ FromCity }}, {{ FromState }}, {{ FromCountry }}
+{% elif FromCity != "" and FromCountry != "" -%}
+Caller Location: {{ FromCity }}, {{ FromCountry }}
+{% elif FromState != "" and FromCountry != "" -%}
+Caller Location: {{ FromState }}, {{ FromCountry }}
+{% elif FromCountry != "" -%}
+Caller Location: {{ FromCountry }}
+{% endif %}
+URL of recording:
 {{ RecordingUrl }}
