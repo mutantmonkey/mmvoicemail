@@ -1,11 +1,11 @@
 from email.mime.text import MIMEText
 from flask import Flask, render_template, request, send_from_directory
 import email.utils
+import os
 import smtplib
-from . import config
 
 app = Flask(__name__)
-app.config.from_object(config)
+app.config.from_pyfile(os.environ.get('APP_CONFIG_PATH', 'config.py'))
 
 
 @app.route('/record/start.xml', methods=['GET', 'POST'])
