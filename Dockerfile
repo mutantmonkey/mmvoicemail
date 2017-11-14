@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 ADD mmvoicemail /usr/src/app/mmvoicemail/
 COPY uwsgi.ini /usr/src/app/
 
-VOLUME ["/data/config"]
+VOLUME ["/etc/mmvoicemail"]
 
 EXPOSE 8080
 USER nobody
