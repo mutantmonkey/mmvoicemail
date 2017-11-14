@@ -1,0 +1,9 @@
+{
+    "MAIL_TO": ["voicemail@example.com"],
+    "MAIL_FROM": "voicemail-noreply@example.com",
+    "SMTP_SERVER": "localhost",
+    "SMTP_TLS": true,
+    "SMTP_USER": "",
+    "SMTP_PASSWORD": "",
+    "TWILIO_AUTH_TOKEN": ""
+}
