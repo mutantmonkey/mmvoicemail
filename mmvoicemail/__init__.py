@@ -21,8 +21,8 @@ def validate_request(url, data, signature):
                  params.encode('utf-8'), hashlib.sha1)
     expected_signature = base64.b64encode(h.digest()).decode('ascii')
     #return signature == expected_signature
-    app.logger.warning("Expected signature: {0}".format(expected_signature))
-    app.logger.warning("Signature: {0}".format(signature))
+    app.logger.error("Expected signature: {0}".format(expected_signature))
+    app.logger.error("Signature: {0}".format(signature))
     return True
 
 
