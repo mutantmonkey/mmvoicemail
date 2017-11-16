@@ -6,21 +6,11 @@ import hashlib
 import hmac
 import os
 import smtplib
+from twilio.request_validator import RequestValidator
 
 app = Flask(__name__)
 app.config.from_json(os.environ.get('APP_CONFIG_PATH', 'config.json'))
-
-
-def validate_request(url, data, signature):
-    params = url
-    if data is not None:
-        for k, v in sorted(data.items()):
-            params += str(k) + str(v)
-
-    h = hmac.new(app.config['TWILIO_AUTH_TOKEN'].encode('utf-8'),
-                 params.encode('utf-8'), hashlib.sha1)
-    expected_signature = base64.b64encode(h.digest()).decode('ascii')
-    return signature == expected_signature
+validator = RequestValidator(app.config['TWILIO_AUTH_TOKEN'])
 
 
 def send_email(msg):
@@ -41,8 +31,8 @@ def index():
 
 @app.route('/record/start.xml', methods=['GET', 'POST'])
 def record_start():
-    if not validate_request(request.url, None,
-                            request.headers.get('X-Twilio-Signature', '')):
+    if not validator.validate(request.url, None,
+                              request.headers.get('X-Twilio-Signature', '')):
         abort(401)
 
     return send_from_directory(app.static_folder, 'record.xml')
@@ -50,8 +40,8 @@ def record_start():
 
 @app.route('/record/finished.xml', methods=['POST'])
 def record_finished():
-    if not validate_request(request.url, request.form,
-                            request.headers.get('X-Twilio-Signature', '')):
+    if not validator.validate(request.url, request.form,
+                              request.headers.get('X-Twilio-Signature', '')):
         abort(401)
 
     params = {
@@ -86,8 +76,8 @@ def record_finished():
 
 @app.route('/sms', methods=['POST'])
 def incoming_sms():
-    if not validate_request(request.url, request.form,
-                            request.headers.get('X-Twilio-Signature', '')):
+    if not validator.validate(request.url, request.form,
+                              request.headers.get('X-Twilio-Signature', '')):
         abort(401)
 
     params = {
