@@ -1,16 +1,36 @@
-import base64
 from email.mime.text import MIMEText
 from flask import abort, Flask, render_template, request, send_from_directory
+from functools import wraps
 import email.utils
-import hashlib
-import hmac
 import os
 import smtplib
 from twilio.request_validator import RequestValidator
 
 app = Flask(__name__)
 app.config.from_json(os.environ.get('APP_CONFIG_PATH', 'config.json'))
-validator = RequestValidator(app.config['TWILIO_AUTH_TOKEN'])
+
+
+def validate_twilio_request(f):
+    """Validates that incoming requests genuinely originated from Twilio"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Create an instance of the RequestValidator class
+        validator = RequestValidator(app.config['TWILIO_AUTH_TOKEN'])
+
+        # Validate the request using its URL, POST data,
+        # and X-TWILIO-SIGNATURE header
+        request_valid = validator.validate(
+            request.url,
+            request.form,
+            request.headers.get('X-TWILIO-SIGNATURE', ''))
+
+        # Continue processing the request if it's valid, return a 403 error if
+        # it's not
+        if request_valid:
+            return f(*args, **kwargs)
+        else:
+            return abort(403)
+    return decorated_function
 
 
 def send_email(msg):
@@ -29,21 +49,15 @@ def index():
     return ""
 
 
+@validate_twilio_request
 @app.route('/record/start.xml', methods=['POST'])
 def record_start():
-    if not validator.validate(request.url, request.form,
-                              request.headers.get('X-Twilio-Signature', '')):
-        abort(401)
-
     return send_from_directory(app.static_folder, 'record.xml')
 
 
+@validate_twilio_request
 @app.route('/record/finished.xml', methods=['POST'])
 def record_finished():
-    if not validator.validate(request.url, request.form,
-                              request.headers.get('X-Twilio-Signature', '')):
-        abort(401)
-
     params = {
         'CallSid': request.form['CallSid'],
         'From': request.form['From'].replace('\n', '').replace('\r', ''),
@@ -74,12 +88,9 @@ def record_finished():
     return send_from_directory(app.static_folder, 'goodbye.xml')
 
 
+@validate_twilio_request
 @app.route('/sms', methods=['POST'])
 def incoming_sms():
-    if not validator.validate(request.url, request.form,
-                              request.headers.get('X-Twilio-Signature', '')):
-        abort(401)
-
     params = {
         'From': request.form['From'].replace('\n', '').replace('\r', ''),
         'To': request.form['To'].replace('\n', '').replace('\r', ''),
