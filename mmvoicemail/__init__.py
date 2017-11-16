@@ -29,9 +29,9 @@ def index():
     return ""
 
 
-@app.route('/record/start.xml', methods=['GET', 'POST'])
+@app.route('/record/start.xml', methods=['POST'])
 def record_start():
-    if not validator.validate(request.url, None,
+    if not validator.validate(request.url, request.form,
                               request.headers.get('X-Twilio-Signature', '')):
         abort(401)
 
