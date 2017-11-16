@@ -14,16 +14,13 @@ app.config.from_json(os.environ.get('APP_CONFIG_PATH', 'config.json'))
 def validate_request(url, data, signature):
     params = url
     if data is not None:
-        for k, v in sorted(data.items(), key=lambda x: x[0]):
+        for k, v in sorted(data.items()):
             params += str(k) + str(v)
 
     h = hmac.new(app.config['TWILIO_AUTH_TOKEN'].encode('utf-8'),
                  params.encode('utf-8'), hashlib.sha1)
     expected_signature = base64.b64encode(h.digest()).decode('ascii')
-    #return signature == expected_signature
-    app.logger.error("Expected signature: {0}".format(expected_signature))
-    app.logger.error("Signature: {0}".format(signature))
-    return True
+    return signature == expected_signature
 
 
 def send_email(msg):
