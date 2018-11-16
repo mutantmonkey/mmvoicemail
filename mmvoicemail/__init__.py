@@ -7,7 +7,16 @@ import smtplib
 from twilio.request_validator import RequestValidator
 
 app = Flask(__name__)
+app.config.update({
+    'PROXY_FIX': False,
+    'PROXY_FIX_NUM_PROXIES': 1,
+})
 app.config.from_json(os.environ.get('APP_CONFIG_PATH', 'config.json'))
+
+if app.config['PROXY_FIX']:
+    from werkzeug.contrib.fixers import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app,
+                            num_proxies=app.config['PROXY_FIX_NUM_PROXIES'])
 
 
 def validate_twilio_request(f):
