@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Publish to GitHub Package Registry
+    - name: Publish to GitHub Container Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: mutantmonkey/mmvoicemail
