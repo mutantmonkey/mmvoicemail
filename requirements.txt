@@ -4,18 +4,33 @@
 #
 #    pip-compile
 #
-certifi==2019.9.11        # via requests
-chardet==3.0.4            # via requests
-click==7.0                # via flask
+certifi==2019.9.11
+    # via requests
+chardet==3.0.4
+    # via requests
+click==7.0
+    # via flask
 flask==1.1.1
-idna==2.8                 # via requests
-itsdangerous==1.1.0       # via flask
-jinja2==2.10.3            # via flask
-markupsafe==1.1.1         # via jinja2
-pyjwt==1.7.1              # via twilio
-pytz==2019.3              # via twilio
-requests==2.22.0          # via twilio
-six==1.13.0               # via twilio
+    # via -r requirements.in
+idna==2.8
+    # via requests
+itsdangerous==1.1.0
+    # via flask
+jinja2==2.11.3
+    # via flask
+markupsafe==1.1.1
+    # via jinja2
+pyjwt==1.7.1
+    # via twilio
+pytz==2019.3
+    # via twilio
+requests==2.22.0
+    # via twilio
+six==1.13.0
+    # via twilio
 twilio==6.33.1
-urllib3==1.25.7           # via requests
-werkzeug==0.16.0          # via flask
+    # via -r requirements.in
+urllib3==1.25.7
+    # via requests
+werkzeug==0.16.0
+    # via flask
