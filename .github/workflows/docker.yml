@@ -1,4 +1,4 @@
-name: Build Docker image and push to GitHub Package Registry
+name: Build Docker image and push to GitHub Container Registry
 on: [push]
 
 jobs:
