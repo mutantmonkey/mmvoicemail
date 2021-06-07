@@ -14,9 +14,12 @@ app.config.update({
 app.config.from_json(os.environ.get('APP_CONFIG_PATH', 'config.json'))
 
 if app.config['PROXY_FIX']:
-    from werkzeug.contrib.fixers import ProxyFix
+    from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app,
-                            num_proxies=app.config['PROXY_FIX_NUM_PROXIES'])
+                            x_for=app.config['PROXY_FIX_NUM_PROXIES'],
+                            x_proto=app.config['PROXY_FIX_NUM_PROXIES'],
+                            x_host=app.config['PROXY_FIX_NUM_PROXIES'],
+                            x_prefix=app.config['PROXY_FIX_NUM_PROXIES'])
 
 
 def validate_twilio_request(f):
