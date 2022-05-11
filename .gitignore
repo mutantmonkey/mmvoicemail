@@ -5,3 +5,6 @@
 .DS_Store
 Thumbs.db
 config.py
+config.json
+*.pem
+/mmvoicemail
