@@ -4,17 +4,18 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 )
 
-func checkRequestSignature(req *http.Request, authToken string) (bool, error) {
+func checkRequestSignature(baseUrl string, req *http.Request, authToken string) (bool, error) {
 	// https://www.twilio.com/docs/usage/security#validating-requests
 
 	var buf strings.Builder
-	buf.WriteString(req.URL.String())
+	buf.WriteString(baseUrl)
 
 	if req.Method == "POST" {
 		// Sort all POST fields alphabetically by key and concatenate
@@ -47,10 +48,17 @@ func checkRequestSignature(req *http.Request, authToken string) (bool, error) {
 	return hmac.Equal(reqSignature, expectedMAC), nil
 }
 
-func TwilioValidatorMiddleware(authToken string) func(http.Handler) http.Handler {
+func TwilioValidatorMiddleware(authToken string, listenScheme string) func(http.Handler) http.Handler {
 	f := func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, req *http.Request) {
-			ok, err := checkRequestSignature(req, authToken)
+			host := req.Host
+			if !strings.Contains(host, ":") {
+				host = fmt.Sprintf("%s:%d", req.Host, config.ListenPort)
+			}
+
+			baseUrl := fmt.Sprintf("%s://%s%s", listenScheme, host, req.URL.Path)
+
+			ok, err := checkRequestSignature(baseUrl, req, authToken)
 			if ok {
 				h.ServeHTTP(w, req)
 			} else {

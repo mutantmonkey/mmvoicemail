@@ -220,7 +220,13 @@ func main() {
 	// If Twilio auth token is defined, add middleware that requires a
 	// valid Twilio signature.
 	if config.TwilioAuthToken != "" {
-		mux.Use(TwilioValidatorMiddleware(config.TwilioAuthToken))
+		listenScheme := "https"
+		// the "http" scheme may only be used for local testing
+		// otherwise, assume we're being proxied by an HTTPS frontend
+		if configFlags.LocalOnly {
+			listenScheme = "http"
+		}
+		mux.Use(TwilioValidatorMiddleware(config.TwilioAuthToken, listenScheme))
 	} else {
 		log.Print("Warning: request validation is disabled because TWILIO_AUTH_TOKEN was not provided in the config.")
 	}
