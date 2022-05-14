@@ -1,26 +1,64 @@
 package main
 
 import (
-	"io/ioutil"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
-
-	"github.com/twilio/twilio-go/client"
 )
 
+func checkRequestSignature(req *http.Request, authToken string) (bool, error) {
+	// https://www.twilio.com/docs/usage/security#validating-requests
+
+	var buf strings.Builder
+	buf.WriteString(req.URL.String())
+
+	if req.Method == "POST" {
+		// Sort all POST fields alphabetically by key and concatenate
+		// the parameter name and value to the end of the URL (with no
+		// delimiter)
+		err := req.ParseForm()
+		if err != nil {
+			return false, err
+		}
+		keys := make([]string, 0, len(req.PostForm))
+		for k := range req.PostForm {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, k := range keys {
+			buf.WriteString(k)
+			buf.WriteString(req.PostForm.Get(k))
+		}
+	}
+
+	mac := hmac.New(sha1.New, []byte(authToken))
+	mac.Write([]byte(buf.String()))
+	expectedMAC := mac.Sum(nil)
+	reqSignature, err := base64.StdEncoding.DecodeString(req.Header.Get("X-Twilio-Signature"))
+	if err != nil {
+		return false, err
+	}
+
+	return hmac.Equal(reqSignature, expectedMAC), nil
+}
+
 func TwilioValidatorMiddleware(authToken string) func(http.Handler) http.Handler {
-	rv := client.NewRequestValidator(config.TwilioAuthToken)
 	f := func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, req *http.Request) {
-			body, err := ioutil.ReadAll(req.Body)
-			if err != nil {
+			ok, err := checkRequestSignature(req, authToken)
+			if ok {
+				h.ServeHTTP(w, req)
+			} else {
+				if err != nil {
+					log.Print("Error while checking request signature: %s\n", err)
+				}
 				http.Error(w, "403 forbidden", http.StatusForbidden)
 			}
-			if !rv.ValidateBody(req.URL.String(), body, req.Header.Get("X-Twilio-Signature")) {
-				http.Error(w, "403 forbidden", http.StatusForbidden)
-			}
-			h.ServeHTTP(w, req)
 		}
 		return http.HandlerFunc(fn)
 	}
