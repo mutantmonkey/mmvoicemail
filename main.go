@@ -219,12 +219,11 @@ func main() {
 
 	// If Twilio auth token is defined, add middleware that requires a
 	// valid Twilio signature.
-	/*if config.TwilioAuthToken != "" {
+	if config.TwilioAuthToken != "" {
 		mux.Use(TwilioValidatorMiddleware(config.TwilioAuthToken))
 	} else {
 		log.Print("Warning: request validation is disabled because TWILIO_AUTH_TOKEN was not provided in the config.")
-	}*/
-	log.Print("Warning: request validation is broken in the Twilio Go library and has been disabled.")
+	}
 
 	mux.Post("/record/start.xml", func(w http.ResponseWriter, req *http.Request) {
 		http.ServeFile(w, req, "static/record.xml")
