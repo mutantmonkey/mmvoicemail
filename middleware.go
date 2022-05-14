@@ -63,7 +63,7 @@ func TwilioValidatorMiddleware(authToken string, listenScheme string) func(http.
 				h.ServeHTTP(w, req)
 			} else {
 				if err != nil {
-					log.Print("Error while checking request signature: %s\n", err)
+					log.Printf("Error while checking request signature: %s\n", err)
 				}
 				http.Error(w, "403 forbidden", http.StatusForbidden)
 			}

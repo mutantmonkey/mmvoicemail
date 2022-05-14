@@ -249,13 +249,13 @@ func main() {
 
 		tpl, err := pongo2.FromFile("templates/voicemail_email.txt")
 		if err != nil {
-			log.Print("error loading template: %s\n", err.Error())
+			log.Printf("error loading template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		body, err := tpl.Execute(context)
 		if err != nil {
-			log.Print("error executing template: %s\n", err.Error())
+			log.Printf("error executing template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -280,13 +280,13 @@ func main() {
 
 		tpl, err := pongo2.FromFile("templates/sms_email.txt")
 		if err != nil {
-			log.Print("error loading template: %s\n", err.Error())
+			log.Printf("error loading template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		body, err := tpl.Execute(context)
 		if err != nil {
-			log.Print("error executing template: %s\n", err.Error())
+			log.Printf("error executing template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
