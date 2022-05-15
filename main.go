@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/smtp"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -220,13 +221,18 @@ func main() {
 	// If Twilio auth token is defined, add middleware that requires a
 	// valid Twilio signature.
 	if config.TwilioAuthToken != "" {
-		listenScheme := "https"
+		baseUrl := &url.URL{
+			Scheme: "https",
+			Host:   fmt.Sprintf("localhost:%d", config.ListenPort),
+		}
+
 		// the "http" scheme may only be used for local testing
 		// otherwise, assume we're being proxied by an HTTPS frontend
 		if configFlags.LocalOnly {
-			listenScheme = "http"
+			baseUrl.Scheme = "http"
 		}
-		mux.Use(TwilioValidatorMiddleware(config.TwilioAuthToken, listenScheme))
+
+		mux.Use(TwilioValidatorMiddleware(config.TwilioAuthToken, baseUrl))
 	} else {
 		log.Print("Warning: request validation is disabled because TWILIO_AUTH_TOKEN was not provided in the config.")
 	}
