@@ -20,4 +20,4 @@ VOLUME ["/etc/mmvoicemail"]
 
 EXPOSE 8080
 USER nobody
-CMD ["mmvoicemail", "-config", "/etc/mmvoicemail/config.json"]
+CMD ["mmvoicemail", "-config", "/etc/mmvoicemail/config.json", "-port", "8080"]
