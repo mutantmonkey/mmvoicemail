@@ -33,14 +33,14 @@ type Config struct {
 	TwilioAuthToken    string   `json:"TWILIO_AUTH_TOKEN"`
 	ProxyFix           bool     `json:"PROXY_FIX"`
 	ProxyFixNumProxies int      `json:"PROXY_FIX_NUM_PROXIES"`
-	ListenPort         uint     `json:"LISTEN_PORT"`
+	ListenPort         string   `json:"LISTEN_PORT"`
 	CertFile           string   `json:"CERT_FILE"`
 	KeyFile            string   `json:"KEY_FILE"`
 }
 
 type ConfigFlags struct {
 	LocalOnly  bool
-	ListenPort uint
+	ListenPort string
 	CertFile   string
 	KeyFile    string
 	ConfigFile string
@@ -177,15 +177,11 @@ func main() {
 	}
 
 	flag.BoolVar(&configFlags.LocalOnly, "local", false, "bind to localhost (no TLS)")
-	flag.UintVar(&configFlags.ListenPort, "port", 0, "port to listen on")
+	flag.StringVar(&configFlags.ListenPort, "port", "", "port to listen on (or host:port)")
 	flag.StringVar(&configFlags.CertFile, "cert", "", "path to TLS certificate")
 	flag.StringVar(&configFlags.KeyFile, "key", "", "path to TLS certificate key")
 	flag.StringVar(&configFlags.ConfigFile, "config", "/etc/mmvoicemail/config.json", "path to config file")
 	flag.Parse()
-
-	if configFlags.ListenPort > 65535 {
-		log.Fatal("invalid port: must be <65536")
-	}
 
 	var err error
 	config, err = parseConfig(configFlags.ConfigFile)
@@ -193,10 +189,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if configFlags.ListenPort != 0 {
+	if len(configFlags.ListenPort) > 0 {
 		config.ListenPort = configFlags.ListenPort
-	} else if config.ListenPort == 0 {
-		config.ListenPort = 8080
+	}
+
+	if len(config.ListenPort) == 0 {
+		if configFlags.LocalOnly {
+			config.ListenPort = "[::1]:8080"
+		} else {
+			config.ListenPort = ":443"
+		}
+	} else if !strings.Contains(config.ListenPort, ":") {
+		config.ListenPort = fmt.Sprintf(":%s", config.ListenPort)
 	}
 
 	if configFlags.CertFile != "" {
@@ -223,7 +227,7 @@ func main() {
 	if config.TwilioAuthToken != "" {
 		baseUrl := &url.URL{
 			Scheme: "https",
-			Host:   fmt.Sprintf("localhost:%d", config.ListenPort),
+			Host:   config.ListenPort,
 		}
 
 		// the "http" scheme may only be used for local testing
@@ -328,29 +332,17 @@ func main() {
 	}
 
 	var srv *http.Server
-	if configFlags.LocalOnly {
-		srv = &http.Server{
-			Addr:         fmt.Sprintf("[::1]:%d", config.ListenPort),
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			IdleTimeout:  120 * time.Second,
-			TLSConfig:    tlsConfig,
-			Handler:      mux,
-		}
-		log.Fatal(srv.ListenAndServe())
+	srv = &http.Server{
+		Addr:         config.ListenPort,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		TLSConfig:    tlsConfig,
+		Handler:      mux,
+	}
+	if !configFlags.LocalOnly && config.CertFile != "" && config.KeyFile != "" {
+		log.Fatal(srv.ListenAndServeTLS(config.CertFile, config.KeyFile))
 	} else {
-		srv = &http.Server{
-			Addr:         fmt.Sprintf(":%d", config.ListenPort),
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			IdleTimeout:  120 * time.Second,
-			TLSConfig:    tlsConfig,
-			Handler:      mux,
-		}
-		if config.CertFile != "" && config.KeyFile != "" {
-			log.Fatal(srv.ListenAndServeTLS(config.CertFile, config.KeyFile))
-		} else {
-			log.Fatal(srv.ListenAndServe())
-		}
+		log.Fatal(srv.ListenAndServe())
 	}
 }
