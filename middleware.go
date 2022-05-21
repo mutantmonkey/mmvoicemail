@@ -115,3 +115,15 @@ func ProxyFixMiddleware(numProxies int) func(http.Handler) http.Handler {
 	}
 	return f
 }
+
+func SecurityHeaderMiddleware(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+		w.Header().Add("Referrer-Policy", "no-referrer")
+		w.Header().Add("Strict-Transport-Security", "max-age=15768000")
+		w.Header().Add("X-Content-Type-Options", "nosniff")
+		w.Header().Add("X-Frame-Options", "DENY")
+		h.ServeHTTP(w, req)
+	}
+	return http.HandlerFunc(fn)
+}

@@ -211,6 +211,7 @@ func main() {
 	}
 
 	mux := chi.NewRouter()
+	mux.Use(SecurityHeaderMiddleware)
 
 	if config.ProxyFix {
 		if config.ProxyFixNumProxies < 1 {
