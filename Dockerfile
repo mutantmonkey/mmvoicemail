@@ -8,7 +8,7 @@ ADD go.mod go.sum /usr/src/app/
 ADD *.go /usr/src/app/
 RUN go build && setcap 'cap_net_bind_service=+ep' mmvoicemail
 
-FROM alpine:3.15
+FROM alpine:3.16.0
 
 WORKDIR /usr/src/app
 
