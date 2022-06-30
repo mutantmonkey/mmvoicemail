@@ -94,7 +94,7 @@ func parseConfig(path string) (c *Config, err error) {
 
 func openListener(config *Config, mux *chi.Mux, localOnly bool) error {
 	var getCertificate cert.GetCertificateFunc
-	var nextProtos = []string{"h2", "http/1.1", "http/1.0"}
+	var nextProtos = []string{"h2", "http/1.1"}
 
 	if localOnly {
 		getCertificate = nil
