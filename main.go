@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -65,6 +66,18 @@ type SMSResponse struct {
 
 var config *Config
 var configFlags *ConfigFlags
+
+//go:embed static/record.xml
+var recordXml []byte
+
+//go:embed static/goodbye.xml
+var goodbyeXml []byte
+
+//go:embed templates/sms_email.txt
+var tmplSmsEmail []byte
+
+//go:embed templates/voicemail_email.txt
+var tmplVoicemailEmail []byte
 
 func stripCRLF(input string) (output string) {
 	output = strings.ReplaceAll(input, "\r", "")
@@ -217,7 +230,8 @@ func main() {
 	}
 
 	mux.Post("/record/start.xml", func(w http.ResponseWriter, req *http.Request) {
-		http.ServeFile(w, req, "static/record.xml")
+		w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+		w.Write(recordXml)
 	})
 	mux.Post("/record/finished.xml", func(w http.ResponseWriter, req *http.Request) {
 		context := pongo2.Context{
@@ -232,7 +246,7 @@ func main() {
 			"RecordingUrl": req.PostFormValue("RecordingUrl"),
 		}
 
-		tpl, err := pongo2.FromFile("templates/voicemail_email.txt")
+		tpl, err := pongo2.FromBytes(tmplVoicemailEmail)
 		if err != nil {
 			log.Printf("error loading template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
@@ -254,7 +268,8 @@ func main() {
 			return
 		}
 
-		http.ServeFile(w, req, "static/goodbye.xml")
+		w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+		w.Write(goodbyeXml)
 	})
 	mux.Post("/sms", func(w http.ResponseWriter, req *http.Request) {
 		context := pongo2.Context{
@@ -263,7 +278,7 @@ func main() {
 			"Body": req.PostFormValue("Body"),
 		}
 
-		tpl, err := pongo2.FromFile("templates/sms_email.txt")
+		tpl, err := pongo2.FromBytes(tmplSmsEmail)
 		if err != nil {
 			log.Printf("error loading template: %s\n", err.Error())
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
