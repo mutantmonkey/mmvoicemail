@@ -7,7 +7,7 @@ WORKDIR /usr/src/app/
 ADD go.mod go.sum /usr/src/app/
 ADD *.go /usr/src/app/
 ADD static /usr/src/app/static/
-ADD templates /usr/src/app/static/
+ADD templates /usr/src/app/templates/
 RUN go build && setcap 'cap_net_bind_service=+ep' mmvoicemail
 
 FROM alpine:3.17
