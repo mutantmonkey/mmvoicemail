@@ -1,4 +1,4 @@
-FROM golang:1.20.1-alpine3.17 AS builder
+FROM golang:1.20.4-alpine3.17 AS builder
 
 RUN apk --no-cache add libcap
 
