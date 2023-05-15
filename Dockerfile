@@ -10,7 +10,7 @@ ADD static /usr/src/app/static/
 ADD templates /usr/src/app/templates/
 RUN go build && setcap 'cap_net_bind_service=+ep' mmvoicemail
 
-FROM alpine:3.17
+FROM alpine:3.18
 
 WORKDIR /usr/src/app
 
